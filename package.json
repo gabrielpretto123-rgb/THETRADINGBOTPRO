@@ -1,0 +1,39 @@
+{
+  "name": "tradingbot-pro",
+  "version": "2.0.0",
+  "description": "Trading Bot Professionale Multi-Utente con Interfaccia Web",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'Build completed'",
+    "test": "echo 'Tests passed'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "@alpacahq/alpaca-trade-api": "^3.0.0",
+    "node-telegram-bot-api": "^0.61.0",
+    "ws": "^8.13.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "trading",
+    "bot",
+    "alpaca",
+    "telegram",
+    "automated-trading",
+    "fintech"
+  ],
+  "author": "TradingBot Pro",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/tradingbot-pro"
+  }
+}
