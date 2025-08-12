@@ -6,11 +6,18 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
+const userBots = new Map(); // Aggiunto questo mancante nel tuo codice
+
+// Configurazioni base
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Fix cruciale per Render
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 1. TECHNICAL INDICATORS CLASS (NON MODIFICARE)
+// Crea cartelle necessarie se non esistono
+if (!fs.existsSync('./public')) fs.mkdirSync('./public');
+if (!fs.existsSync('./configs')) fs.mkdirSync('./configs');
+
+// ========== INIZIO CLASSI (NON MODIFICARE) ========== //
 class TechnicalIndicators {
     static sma(prices, period) {
         const result = [];
@@ -36,7 +43,6 @@ class TechnicalIndicators {
     }
 }
 
-// 2. TRADING STRATEGIES (NON MODIFICARE)
 class TradingStrategies {
     static async smacrossover(prices, config) {
         if (prices.length < 50) return 'hold';
@@ -74,7 +80,6 @@ class TradingStrategies {
     }
 }
 
-// 3. USER BOT CLASS (NON MODIFICARE)
 class UserTradingBot {
     constructor(userId, config) {
         this.userId = userId;
@@ -257,8 +262,9 @@ class UserTradingBot {
         };
     }
 }
+// ========== FINE CLASSI ========== //
 
-// 4. API ROUTES (NON MODIFICARE)
+// API Routes
 app.post('/api/start-bot', async (req, res) => {
     try {
         const { userId, config } = req.body;
@@ -295,9 +301,7 @@ app.get('/api/bot-status/:userId', (req, res) => {
     }
 });
 
-// 5. SERVER INIT (MODIFICATO PER RENDER)
-if (!fs.existsSync('./configs')) fs.mkdirSync('./configs');
-
+// Health Check
 app.get('/health', (req, res) => {
     res.json({
         status: 'online',
@@ -306,12 +310,14 @@ app.get('/health', (req, res) => {
     });
 });
 
-app.get('/', (req, res) => {
+// Gestione delle rotte (MODIFICATO PER RENDER)
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Avvio server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`🚀 Server avviato su porta ${PORT}`);
-    console.log(`🔧 Health Check: http://localhost:${PORT}/health`);
+    console.log(`👉 Frontend: http://localhost:${PORT}`);
 });
