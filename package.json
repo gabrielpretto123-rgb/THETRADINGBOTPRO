@@ -1,6 +1,6 @@
 {
   "name": "tradingbot-pro",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Trading Bot Professionale Multi-Utente con Interfaccia Web",
   "main": "server.js",
   "scripts": {
@@ -11,11 +11,14 @@
     "backup": "node backup.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "@alpacahq/alpaca-trade-api": "^3.0.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "googleapis": "^120.0.0",
+    "jsonwebtoken": "^9.0.2",
     "node-telegram-bot-api": "^0.61.0",
-    "ws": "^8.13.0",
-    "cors": "^2.8.5"
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
