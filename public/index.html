@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚀 TradingBot Pro - Reddito Passivo Automatico</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -184,11 +185,90 @@
         
         .feature-icon { font-size: 2.5rem; margin-bottom: 15px; }
         
+        /* Nuovi stili per la dashboard avanzata */
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .trades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .trades-table th, .trades-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .trades-table th {
+            background-color: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .trades-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .trades-table tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .profit-cell {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .loss-cell {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
         @media (max-width: 768px) {
             .hero-section h1 { font-size: 2rem; }
             .mode-selector { grid-template-columns: 1fr; }
             .control-buttons { flex-direction: column; align-items: center; }
             .btn { min-width: 200px; }
+            .trades-table { display: block; overflow-x: auto; }
         }
         
         .premium-badge {
@@ -200,8 +280,8 @@
 </head>
 <body>
     <div class="hero-section">
-        <h1>🚀 TradingBot Pro</h1>
-        <p>Il Tuo Sistema di Reddito Passivo Automatico</p>
+        <h1>🚀 TradingBot Pro 2.0</h1>
+        <p>Il Tuo Sistema di Reddito Passivo Automatico Avanzato</p>
         <p><strong>Sicuro • Personalizzabile • Professionale</strong></p>
     </div>
 
@@ -213,7 +293,8 @@
             <div class="login-form">
                 <input type="email" id="email" placeholder="La tua email" required>
                 <input type="password" id="password" placeholder="Password sicura" required>
-                <button onclick="handleLogin()">🚀 ACCEDI / REGISTRATI</button>
+                <button onclick="handleLogin()">🚀 ACCEDI</button>
+                <button onclick="handleRegister()" style="background: linear-gradient(135deg, #f39c12, #e67e22); margin-top: 10px;">📝 REGISTRATI</button>
             </div>
         </div>
 
@@ -243,172 +324,227 @@
 
     <!-- Dashboard Section -->
     <div id="dashboardSection" class="container dashboard">
-        <!-- Mode Selection -->
-        <div class="section-card">
-            <h2 class="section-title">🎯 Modalità Operativa</h2>
-            <div class="mode-selector">
-                <div class="mode-card mode-paper" onclick="selectMode('paper')">
-                    <h3>📝 Paper Trading</h3>
-                    <p><strong>SICURO</strong><br>Soldi virtuali per testare le strategie</p>
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+            <div class="tab" onclick="switchTab('configuration')">⚙️ Configurazione</div>
+            <div class="tab" onclick="switchTab('history')">📜 Storico</div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboardTab" class="tab-content active">
+            <!-- Statistics -->
+            <div class="section-card">
+                <h2 class="section-title">📊 Statistiche Performance</h2>
+                <div class="status-panel">
+                    <div class="status-card">
+                        <div id="totalTrades" class="status-value">0</div>
+                        <div class="status-label">Trade Totali</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="winRate" class="status-value">0%</div>
+                        <div class="status-label">Win Rate</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="totalPL" class="status-value profit">$0.00</div>
+                        <div class="status-label">P&L Totale</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="dailyPL" class="status-value">$0.00</div>
+                        <div class="status-label">P&L Oggi</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="monthlyPL" class="status-value">$0.00</div>
+                        <div class="status-label">P&L Mensile</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="botStatus" class="status-value" style="color: #e67e22;">FERMO</div>
+                        <div class="status-label">Status</div>
+                    </div>
                 </div>
-                <div class="mode-card mode-live" onclick="selectMode('live')">
-                    <h3>🔴 Trading Reale</h3>
-                    <p><strong>ATTENZIONE</strong><br>Operazioni con denaro reale</p>
-                    <span class="premium-badge">PRO</span>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="section-card">
+                <h2 class="section-title">📈 Andamento Performance</h2>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="section-card">
+                <h2 class="section-title">🎮 Controlli Bot</h2>
+                <div class="control-buttons">
+                    <button id="startBtn" class="btn btn-start" onclick="toggleBot()">🚀 AVVIA BOT</button>
+                    <button class="btn btn-save" onclick="saveConfiguration()">💾 SALVA CONFIG</button>
+                    <button class="btn btn-stop" onclick="emergencyStop()">🚨 STOP EMERGENZA</button>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="section-card">
+                <h2 class="section-title">📝 Log Attività</h2>
+                <div class="activity-log" id="activityLog">
+                    <div class="log-entry">
+                        <span>Sistema inizializzato e pronto</span>
+                        <span>🟢</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- API Configuration -->
-        <div class="section-card">
-            <h2 class="section-title">🔑 Configurazione API</h2>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>🏦 Alpaca API Key</label>
-                    <input type="password" id="apiKey" placeholder="La tua API Key Alpaca">
-                    <small>Ottieni le credenziali da <a href="https://alpaca.markets" target="_blank">alpaca.markets</a></small>
+        <!-- Configuration Tab -->
+        <div id="configurationTab" class="tab-content">
+            <!-- Mode Selection -->
+            <div class="section-card">
+                <h2 class="section-title">🎯 Modalità Operativa</h2>
+                <div class="mode-selector">
+                    <div class="mode-card mode-paper" onclick="selectMode('paper')">
+                        <h3>📝 Paper Trading</h3>
+                        <p><strong>SICURO</strong><br>Soldi virtuali per testare le strategie</p>
+                    </div>
+                    <div class="mode-card mode-live" onclick="selectMode('live')">
+                        <h3>🔴 Trading Reale</h3>
+                        <p><strong>ATTENZIONE</strong><br>Operazioni con denaro reale</p>
+                        <span class="premium-badge">PRO</span>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>🔒 Alpaca Secret Key</label>
-                    <input type="password" id="secretKey" placeholder="La tua Secret Key">
+            </div>
+
+            <!-- API Configuration -->
+            <div class="section-card">
+                <h2 class="section-title">🔑 Configurazione API</h2>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>🏦 Alpaca API Key</label>
+                        <input type="password" id="apiKey" placeholder="La tua API Key Alpaca">
+                        <small>Ottieni le credenziali da <a href="https://alpaca.markets" target="_blank">alpaca.markets</a></small>
+                    </div>
+                    <div class="input-group">
+                        <label>🔒 Alpaca Secret Key</label>
+                        <input type="password" id="secretKey" placeholder="La tua Secret Key">
+                    </div>
+                    <div class="input-group">
+                        <label>📱 Telegram Bot Token</label>
+                        <input type="text" id="telegramToken" placeholder="Token del tuo bot Telegram">
+                        <small>Crea un bot con <a href="https://t.me/botfather" target="_blank">@BotFather</a></small>
+                    </div>
+                    <div class="input-group">
+                        <label>💬 Chat ID Telegram</label>
+                        <input type="text" id="chatId" placeholder="Il tuo Chat ID">
+                        <button type="button" onclick="testTelegram()" class="btn" style="margin-top: 10px; min-width: auto; padding: 8px 15px;">🧪 Test</button>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>📱 Telegram Bot Token</label>
-                    <input type="text" id="telegramToken" placeholder="Token del tuo bot Telegram">
-                    <small>Crea un bot con <a href="https://t.me/botfather" target="_blank">@BotFather</a></small>
+            </div>
+
+            <!-- Strategy Selection -->
+            <div class="section-card">
+                <h2 class="section-title">📊 Strategia di Trading</h2>
+                <div class="strategy-selector">
+                    <div class="strategy-card" onclick="selectStrategy('sma_crossover')">
+                        <h4>📈 SMA Crossover</h4>
+                        <p>Medie mobili incrociate</p>
+                    </div>
+                    <div class="strategy-card" onclick="selectStrategy('rsi_oversold')">
+                        <h4>⚡ RSI Oversold</h4>
+                        <p>Ipervenduto/ipercomprato</p>
+                    </div>
+                    <div class="strategy-card" onclick="selectStrategy('momentum')">
+                        <h4>🚀 Momentum</h4>
+                        <p>Segue il trend</p>
+                    </div>
+                    <div class="strategy-card" onclick="selectStrategy('mean_reversion')">
+                        <h4>🔄 Mean Reversion</h4>
+                        <p>Ritorno alla media</p>
+                    </div>
+                    <div class="strategy-card" onclick="selectStrategy('super_trend')">
+                        <h4>📊 Super Trend</h4>
+                        <p>Nuova strategia avanzata</p>
+                        <span class="premium-badge">NUOVO</span>
+                    </div>
+                    <div class="strategy-card" onclick="selectStrategy('macd_crossover')">
+                        <h4>📉 MACD Crossover</h4>
+                        <p>Analisi MACD avanzata</p>
+                        <span class="premium-badge">NUOVO</span>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Risk Management -->
+            <div class="section-card">
+                <h2 class="section-title">🛡️ Gestione del Rischio</h2>
+                <div class="risk-controls">
+                    <div class="input-group">
+                        <label>💰 Budget per Trade ($)</label>
+                        <input type="number" id="tradeAmount" value="100" min="10" max="10000">
+                    </div>
+                    <div class="input-group">
+                        <label>🛑 Stop Loss (%)</label>
+                        <input type="number" id="stopLoss" value="2" min="0.5" max="10" step="0.1">
+                        <small>Lo stop loss dinamico può modificare questo valore</small>
+                    </div>
+                    <div class="input-group">
+                        <label>🎯 Take Profit (%)</label>
+                        <input type="number" id="takeProfit" value="4" min="1" max="20" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>📊 Max Trade Giornalieri</label>
+                        <input type="number" id="maxTrades" value="10" min="1" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Symbol Selection -->
+            <div class="section-card">
+                <h2 class="section-title">📈 Selezione Titoli</h2>
                 <div class="input-group">
-                    <label>💬 Chat ID Telegram</label>
-                    <input type="text" id="chatId" placeholder="Il tuo Chat ID">
-                    <button type="button" onclick="testTelegram()" class="btn" style="margin-top: 10px; min-width: auto; padding: 8px 15px;">🧪 Test</button>
+                    <label>🎯 Aggiungi Simbolo</label>
+                    <input type="text" id="newSymbol" placeholder="es. AAPL, TSLA, NVDA" onkeypress="addSymbolOnEnter(event)">
+                    <button type="button" onclick="addSymbol()" class="btn" style="margin-top: 10px; min-width: auto; padding: 8px 15px;">➕ Aggiungi</button>
+                </div>
+                <div id="symbolsList" class="symbols-input">
+                    <!-- Symbols will be added here dynamically -->
                 </div>
             </div>
         </div>
 
-        <!-- Strategy Selection -->
-        <div class="section-card">
-            <h2 class="section-title">📊 Strategia di Trading</h2>
-            <div class="strategy-selector">
-                <div class="strategy-card" onclick="selectStrategy('sma_crossover')">
-                    <h4>📈 SMA Crossover</h4>
-                    <p>Medie mobili incrociate</p>
-                </div>
-                <div class="strategy-card" onclick="selectStrategy('rsi_oversold')">
-                    <h4>⚡ RSI Oversold</h4>
-                    <p>Ipervenduto/ipercomprato</p>
-                </div>
-                <div class="strategy-card" onclick="selectStrategy('momentum')">
-                    <h4>🚀 Momentum</h4>
-                    <p>Segue il trend</p>
-                </div>
-                <div class="strategy-card" onclick="selectStrategy('mean_reversion')">
-                    <h4>🔄 Mean Reversion</h4>
-                    <p>Ritorno alla media</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Risk Management -->
-        <div class="section-card">
-            <h2 class="section-title">🛡️ Gestione del Rischio</h2>
-            <div class="risk-controls">
-                <div class="input-group">
-                    <label>💰 Budget per Trade ($)</label>
-                    <input type="number" id="tradeAmount" value="100" min="10" max="10000">
-                </div>
-                <div class="input-group">
-                    <label>🛑 Stop Loss (%)</label>
-                    <input type="number" id="stopLoss" value="2" min="0.5" max="10" step="0.1">
-                </div>
-                <div class="input-group">
-                    <label>🎯 Take Profit (%)</label>
-                    <input type="number" id="takeProfit" value="4" min="1" max="20" step="0.1">
-                </div>
-                <div class="input-group">
-                    <label>📊 Max Trade Giornalieri</label>
-                    <input type="number" id="maxTrades" value="10" min="1" max="100">
-                </div>
-            </div>
-        </div>
-
-        <!-- Symbol Selection -->
-        <div class="section-card">
-            <h2 class="section-title">📈 Selezione Titoli</h2>
-            <div class="input-group">
-                <label>🎯 Aggiungi Simbolo</label>
-                <input type="text" id="newSymbol" placeholder="es. AAPL, TSLA, NVDA" onkeypress="addSymbolOnEnter(event)">
-                <button type="button" onclick="addSymbol()" class="btn" style="margin-top: 10px; min-width: auto; padding: 8px 15px;">➕ Aggiungi</button>
-            </div>
-            <div id="symbolsList" class="symbols-input">
-                <div class="symbol-tag">AAPL <span class="remove" onclick="removeSymbol('AAPL')">✕</span></div>
-                <div class="symbol-tag">TSLA <span class="remove" onclick="removeSymbol('TSLA')">✕</span></div>
-                <div class="symbol-tag">NVDA <span class="remove" onclick="removeSymbol('NVDA')">✕</span></div>
-            </div>
-        </div>
-
-        <!-- Control Panel -->
-        <div class="section-card">
-            <h2 class="section-title">🎮 Controlli Bot</h2>
-            <div class="control-buttons">
-                <button id="startBtn" class="btn btn-start" onclick="toggleBot()">🚀 AVVIA BOT</button>
-                <button class="btn btn-save" onclick="saveConfiguration()">💾 SALVA CONFIG</button>
-                <button class="btn btn-stop" onclick="emergencyStop()">🚨 STOP EMERGENZA</button>
-            </div>
-        </div>
-
-        <!-- Statistics -->
-        <div class="section-card">
-            <h2 class="section-title">📊 Statistiche Performance</h2>
-            <div class="status-panel">
-                <div class="status-card">
-                    <div id="totalTrades" class="status-value">0</div>
-                    <div class="status-label">Trade Totali</div>
-                </div>
-                <div class="status-card">
-                    <div id="winRate" class="status-value">0%</div>
-                    <div class="status-label">Win Rate</div>
-                </div>
-                <div class="status-card">
-                    <div id="totalPL" class="status-value profit">$0.00</div>
-                    <div class="status-label">P&L Totale</div>
-                </div>
-                <div class="status-card">
-                    <div id="dailyPL" class="status-value">$0.00</div>
-                    <div class="status-label">P&L Oggi</div>
-                </div>
-                <div class="status-card">
-                    <div id="monthlyPL" class="status-value">$0.00</div>
-                    <div class="status-label">P&L Mensile</div>
-                </div>
-                <div class="status-card">
-                    <div id="botStatus" class="status-value" style="color: #e67e22;">FERMO</div>
-                    <div class="status-label">Status</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Activity Log -->
-        <div class="section-card">
-            <h2 class="section-title">📝 Log Attività</h2>
-            <div class="activity-log" id="activityLog">
-                <div class="log-entry">
-                    <span>Sistema inizializzato e pronto</span>
-                    <span>🟢</span>
+        <!-- History Tab -->
+        <div id="historyTab" class="tab-content">
+            <div class="section-card">
+                <h2 class="section-title">📜 Storico Operazioni</h2>
+                <div class="trades-table-container">
+                    <table class="trades-table">
+                        <thead>
+                            <tr>
+                                <th>Data/Ora</th>
+                                <th>Tipo</th>
+                                <th>Simbolo</th>
+                                <th>Quantità</th>
+                                <th>Prezzo</th>
+                                <th>P&L</th>
+                                <th>Strategia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradesTableBody">
+                            <!-- Trade history will be added here dynamically -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script>
-        // URL del tuo backend su Render - CAMBIA QUESTA PARTE CON IL TUO URL!
-        const BACKEND_URL = 'https://tradingbot-backend-6meh.onrender.com';
-        
-        // State management
+        // URL del tuo backend su Render
+        const BACKEND_URL = window.location.origin;
+        let performanceChart = null;
         let currentUser = null;
+        let token = null;
         let botActive = false;
         let selectedMode = 'paper';
         let selectedStrategy = 'sma_crossover';
-        let symbols = ['AAPL', 'TSLA', 'NVDA'];
+        let symbols = [];
         
         let stats = {
             totalTrades: 0,
@@ -420,7 +556,7 @@
         };
 
         // Login handling
-        function handleLogin() {
+        async function handleLogin() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
@@ -429,16 +565,97 @@
                 return;
             }
             
-            // Simulate login success
-            currentUser = { email: email, id: Date.now() };
-            showDashboard();
-            addLog('✅ Accesso effettuato con successo', 'success');
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    token = data.token;
+                    currentUser = jwtDecode(token);
+                    showDashboard();
+                    addLog('✅ Accesso effettuato con successo', 'success');
+                    loadUserConfiguration();
+                    loadTradeHistory();
+                    initPerformanceChart();
+                } else {
+                    addLog(`❌ Errore accesso: ${data.error}`, 'error');
+                    alert(data.error || 'Errore durante il login');
+                }
+            } catch (error) {
+                addLog(`❌ Errore di connessione: ${error.message}`, 'error');
+                alert('Errore di connessione al server');
+            }
+        }
+        
+        async function handleRegister() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                alert('Inserisci email e password');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    token = data.token;
+                    currentUser = jwtDecode(token);
+                    showDashboard();
+                    addLog('✅ Registrazione completata con successo', 'success');
+                    initPerformanceChart();
+                } else {
+                    addLog(`❌ Errore registrazione: ${data.error}`, 'error');
+                    alert(data.error || 'Errore durante la registrazione');
+                }
+            } catch (error) {
+                addLog(`❌ Errore di connessione: ${error.message}`, 'error');
+                alert('Errore di connessione al server');
+            }
+        }
+        
+        function jwtDecode(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
         }
         
         function showDashboard() {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('dashboardSection').style.display = 'block';
-            loadUserConfiguration();
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
         }
         
         // Mode selection
@@ -525,9 +742,10 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        userId: currentUser.id,
+                        userId: currentUser.userId,
                         config: config
                     })
                 });
@@ -561,9 +779,10 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        userId: currentUser.id
+                        userId: currentUser.userId
                     })
                 });
                 
@@ -587,7 +806,11 @@
             if (!botActive) return;
             
             try {
-                const response = await fetch(`${BACKEND_URL}/api/bot-status/${currentUser.id}`);
+                const response = await fetch(`${BACKEND_URL}/api/bot-status/${currentUser.userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const status = await response.json();
                 
                 // Aggiorna le statistiche
@@ -599,6 +822,14 @@
                 stats.monthlyPL = status.monthlyPL || 0;
                 
                 updateStatsDisplay();
+                
+                // Aggiorna il grafico delle performance
+                updatePerformanceChart();
+                
+                // Aggiorna la tabella degli ultimi trade
+                if (status.tradeHistory) {
+                    updateTradeHistoryTable(status.tradeHistory);
+                }
                 
                 // Controlla di nuovo dopo 5 secondi
                 setTimeout(checkBotStatus, 5000);
@@ -633,7 +864,7 @@
         }
         
         // Configuration management
-        function saveConfiguration() {
+        async function saveConfiguration() {
             const config = {
                 mode: selectedMode,
                 strategy: selectedStrategy,
@@ -648,35 +879,116 @@
                 chatId: document.getElementById('chatId').value
             };
             
-            localStorage.setItem(`tradingbot_config_${currentUser.id}`, JSON.stringify(config));
-            addLog('💾 Configurazione salvata', 'success');
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user-config`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog('💾 Configurazione salvata', 'success');
+                } else {
+                    addLog('❌ Errore durante il salvataggio della configurazione', 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Errore di connessione: ${error.message}`, 'error');
+            }
         }
         
-        function loadUserConfiguration() {
-            const saved = localStorage.getItem(`tradingbot_config_${currentUser.id}`);
-            if (saved) {
-                const config = JSON.parse(saved);
+        async function loadUserConfiguration() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user-config`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 
-                // Load saved values
-                document.getElementById('tradeAmount').value = config.tradeAmount || 100;
-                document.getElementById('stopLoss').value = config.stopLoss || 2;
-                document.getElementById('takeProfit').value = config.takeProfit || 4;
-                document.getElementById('maxTrades').value = config.maxTrades || 10;
-                document.getElementById('apiKey').value = config.apiKey || '';
-                document.getElementById('secretKey').value = config.secretKey || '';
-                document.getElementById('telegramToken').value = config.telegramToken || '';
-                document.getElementById('chatId').value = config.chatId || '';
+                const data = await response.json();
                 
-                if (config.symbols) {
-                    symbols = config.symbols;
-                    updateSymbolsDisplay();
+                if (data.success && data.config) {
+                    const config = data.config;
+                    
+                    // Load saved values
+                    document.getElementById('tradeAmount').value = config.tradeAmount || 100;
+                    document.getElementById('stopLoss').value = config.stopLoss || 2;
+                    document.getElementById('takeProfit').value = config.takeProfit || 4;
+                    document.getElementById('maxTrades').value = config.maxTrades || 10;
+                    document.getElementById('apiKey').value = config.apiKey || '';
+                    document.getElementById('secretKey').value = config.secretKey || '';
+                    document.getElementById('telegramToken').value = config.telegramToken || '';
+                    document.getElementById('chatId').value = config.chatId || '';
+                    
+                    if (config.symbols) {
+                        symbols = config.symbols;
+                        updateSymbolsDisplay();
+                    }
+                    
+                    selectMode(config.mode || 'paper');
+                    selectedStrategy = config.strategy || 'sma_crossover';
+                    
+                    // Seleziona la strategia nell'interfaccia
+                    document.querySelectorAll('.strategy-card').forEach(card => card.classList.remove('selected'));
+                    const strategyCard = Array.from(document.querySelectorAll('.strategy-card')).find(card => 
+                        card.querySelector('h4').textContent.includes(config.strategy.replace('_', ' ')) ||
+                        card.querySelector('h4').textContent.includes('SMA Crossover');
+                    if (strategyCard) strategyCard.classList.add('selected');
+                    
+                    addLog('📋 Configurazione caricata', 'info');
                 }
-                
-                selectMode(config.mode || 'paper');
-                selectedStrategy = config.strategy || 'sma_crossover';
-                
-                addLog('📋 Configurazione caricata', 'info');
+            } catch (error) {
+                addLog(`❌ Errore durante il caricamento della configurazione: ${error.message}`, 'error');
             }
+        }
+        
+        async function loadTradeHistory() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/trade-history`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.history.length > 0) {
+                    // Prendi l'ultimo storico
+                    const latestHistory = data.history[0].trades || [];
+                    updateTradeHistoryTable(latestHistory);
+                }
+            } catch (error) {
+                console.error('Errore caricamento storico:', error);
+            }
+        }
+        
+        function updateTradeHistoryTable(trades) {
+            const tableBody = document.getElementById('tradesTableBody');
+            tableBody.innerHTML = '';
+            
+            // Ordina i trade dal più recente al più vecchio
+            const sortedTrades = [...trades].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            sortedTrades.forEach(trade => {
+                const row = document.createElement('tr');
+                const date = new Date(trade.timestamp).toLocaleString();
+                
+                row.innerHTML = `
+                    <td>${date}</td>
+                    <td>${trade.type === 'buy' ? 'Acquisto' : 'Vendita'}</td>
+                    <td>${trade.symbol}</td>
+                    <td>${trade.quantity || ''}</td>
+                    <td>$${trade.price?.toFixed(2) || trade.entryPrice?.toFixed(2) || ''}</td>
+                    <td class="${trade.pl > 0 ? 'profit-cell' : trade.pl < 0 ? 'loss-cell' : ''}">
+                        ${trade.pl !== undefined ? `$${trade.pl.toFixed(2)}` : ''}
+                    </td>
+                    <td>${trade.strategy || ''}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
         }
         
         // Telegram testing
@@ -695,6 +1007,61 @@
             setTimeout(() => {
                 addLog('✅ Test Telegram completato con successo!', 'success');
             }, 2000);
+        }
+        
+        // Performance chart
+        function initPerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug'],
+                    datasets: [{
+                        label: 'Performance',
+                        data: [0, 100, 150, 200, 250, 300, 350],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updatePerformanceChart() {
+            if (!performanceChart) return;
+            
+            // Simula dati aggiornati (nella versione reale dovresti usare i dati effettivi)
+            const newData = performanceChart.data.datasets[0].data.map(value => value + (Math.random() * 50 - 25));
+            performanceChart.data.datasets[0].data = newData;
+            performanceChart.update();
         }
         
         // Statistics display
